@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by the Apache License, Version 2.0.
+See the COPYING file for details.
+-->
+<head>
+  <title>goog.ui.Toolbar</title>
+  <script src="../base.js"></script>
+  <script>
+    goog.require('goog.array');
+	    goog.require('goog.html.testing');
+    goog.require('goog.ui.Tooltip');
+    goog.require('goog.debug.DivConsole');
+    goog.require('goog.debug.LogManager');
+    goog.require('goog.dom');
+    goog.require('goog.events');
+    goog.require('goog.events.EventType');
+    goog.require('goog.log');
+    goog.require('goog.object');
+    goog.require('goog.style');
+    goog.require('goog.ui.Button');
+    goog.require('goog.ui.ButtonSide');
+    goog.require('goog.ui.Component.EventType');
+    goog.require('goog.ui.Component.State');
+    goog.require('goog.ui.Menu');
+    goog.require('goog.ui.MenuItem');
+    goog.require('goog.ui.Option');
+    goog.require('goog.ui.SelectionModel');
+    goog.require('goog.ui.Separator');
+    goog.require('goog.ui.Toolbar');
+    goog.require('goog.ui.ToolbarButton');
+    goog.require('goog.ui.ToolbarMenuButton');
+    goog.require('goog.ui.ToolbarRenderer');
+    goog.require('goog.ui.ToolbarSelect');
+    goog.require('goog.ui.ToolbarSeparator');
+    goog.require('goog.ui.ToolbarToggleButton');
+    goog.require('goog.dom.TagName');
+	goog.require('goog.ui.FlatMenuButtonRenderer');
+  </script>
+  <link rel="stylesheet" href="css/demo.css">
+  <link rel="stylesheet" href="../css/menu.css">
+  <link rel="stylesheet" href="../css/menuitem.css">
+  <link rel="stylesheet" href="../css/menubutton.css">
+  <link rel="stylesheet" href="../css/menuseparator.css">
+  <link rel="stylesheet" href="../css/toolbar.css">
+  <style>
+    /*
+     * Sample toolbar styles.
+     */
+
+    /* Base class for all icon elements. */
+    .icon {
+      height: 16px;
+      width: 16px;
+      background-image: url(../images/toolbar_icons.gif);
+      background-repeat: no-repeat;
+      vertical-align: middle;
+    }
+
+ .goog-tooltip {
+      background: black;
+      color: white;
+      border: 1px solid black;
+      padding: 1px;
+      font: menu;
+    }
+
+
+    .select1{
+	background-image:url(../images/arrow_format_align_right-36px.svg);	
+	}
+	.option1{
+	background-image:url(../images/format_align_left-24px.svg);
+      height: 24px;
+      width: 12px;
+	  background-repeat: no-repeat;
+      vertical-align: middle;
+	  horizontal-align:left;
+	  background-size: 24px 24px;
+	}
+	.option2{
+	background-image:url(../images/format_align_center-24px.svg);
+	  height: 24px;
+      width: 12px;
+		background-repeat: no-repeat;
+      vertical-align: middle;
+	  background-size: 24px 24px;
+	}
+	.option3{
+	background-image:url(../images/format_align_right-24px.svg);
+      height: 24px;
+      width: 12px;
+		background-repeat: no-repeat;
+      vertical-align: middle;
+	 background-size: 24px 24px;
+	}
+	
+	    .icon2 {
+      height: 24px;
+      width: 36px;
+      /*background-image: url(../images/.gif);*/
+      background-repeat: no-repeat;
+      vertical-align: middle;
+	   background:url('../images/arrow_format_align_right-36px.svg');
+	  
+	  
+    }
+	  .icon25 {
+      height: 24px;
+      width: 36px;
+      background-repeat: no-repeat;
+      vertical-align: middle;
+	   background:url('../images/arrow_format_align_left-36px.svg');
+    }
+    .icon21 {
+      height: 24px;
+      width: 36px;
+      /*background-image: url(../images/.gif);*/
+      background-repeat: no-repeat;
+      vertical-align: middle;
+	   background:url('../images/arrow_format_align_left-36px.svg');
+	  
+    }
+	    .icon22 {
+      height: 24px;
+      width: 36px;
+      /*background-image: url(../images/.gif);*/
+      background-repeat: no-repeat;
+      vertical-align: middle;
+	   background:url('../images/arrow_format_align_center-36px.svg');
+	  
+	  
+    }
+	
+	    .icon23 {
+      height: 24px;
+      width: 36px;
+      /*background-image: url(../images/.gif);*/
+      background-repeat: no-repeat;
+      vertical-align: middle;
+	   background:url('../images/arrow_format_align_right-36px.svg');
+	  
+	  
+    }
+	
+
+    /* Font select. */
+    .goog-edit-font .goog-toolbar-menu-button-caption {
+      color: #246;
+      width: 15ex;
+      overflow: hidden;
+    }
+
+    /* Font select options. */
+    .goog-edit-font-normal {
+      font-family: Arial, sans-serif;
+    }
+    .goog-edit-font-times {
+      font-family: Times, serif;
+    }
+    .goog-edit-font-courier {
+      font-family: "Courier New", Courier, monospace;
+    }
+    .goog-edit-font-georgia {
+      font-family: Georgia, serif;
+    }
+    .goog-edit-font-trebuchet {
+      font-family: "Trebuchet MS", sans-serif;
+    }
+    .goog-edit-font-verdana {
+      font-family: Verdana, sans-serif;
+    }
+
+    /* Font size. */
+    .goog-edit-font-size .goog-toolbar-menu-button-caption {
+      color: #246;
+      width: 5ex;
+    }
+
+    /* Bold. */
+    .goog-edit-bold {
+      background-position: 0;
+    }
+
+    /* Italic. */
+    .goog-edit-italic {
+      background-position: -16px;
+    }
+
+    /* Underline. */
+    .goog-edit-underline {
+      background-position: -32px;
+    }
+
+    /* Color. */
+    .goog-edit-color {
+      background-position: -48px;
+    }
+
+    /* Background color. */
+    .goog-edit-background {
+      background-position: -64px;
+    }
+
+    /* Menu buttons. */
+    .goog-edit-style,
+    .goog-edit-insert,
+    .goog-edit-link,
+    .goog-edit-spellcheck {
+      font-weight: bold;
+      color: #246;
+    }
+
+    /* Link. */
+    .goog-edit-link {
+      color: #009;
+      text-decoration: underline;
+    }
+
+    /* Insert menu. */
+    .goog-edit-insert-icon {
+      background-position: -80px;
+      vertical-align: bottom;
+    }
+    .goog-edit-insert-caption {
+      padding: 0 2px;
+      vertical-align: bottom;
+    }
+
+    /* List style menu. */
+    .goog-edit-list-style {
+      background-position: -96px;
+    }
+
+    /* Text alignment buttons. */
+    .goog-edit-align-left {
+      background-position: -112px;
+    }
+    .goog-edit-align-center {
+      background-position: -144px;
+    }
+    .goog-edit-align-right {
+      /*background-position: -160px;*/
+	  background:url('../images/arrow_format_align_right-36px.svg');
+    }
+
+    /*
+     * Menu styles, overriding those in menus.css to make these menus a little
+     * more like the CCC editor UI design.
+     */
+
+    .goog-menu {
+      position: absolute;
+      margin: 0;
+      border-width: 1px;
+      border-style: solid;
+      border-color: #fff;
+      padding: 0;
+      font: normal 10pt Arial, sans-serif;
+      color: #000;
+      
+      cursor: default;
+      outline: none;
+    
+	
+	
+	.goog-menu2 {
+      position: absolute;
+      margin: 0;
+      border-width: 1px;
+      border-style: solid;
+      border-color: white;
+      padding: 0;
+      font: normal 10pt Arial, sans-serif;
+      color: #000;
+      background-color: #fff;
+      cursor: default;
+      outline: none;
+    }
+
+    .goog-menuitem {
+      margin: 0;
+      border: 0;
+	  width:0px;
+      padding: 1px;
+      color: #000;
+      background-color: #fff;
+      list-style: none;
+	  display: inline-block;
+	  background-width:24px;
+    }
+	
+	
+	.goog-menu {
+  background: #fff;
+  border-color: #ccc #666 #666 #ccc;
+  border-style: solid;
+  border-width: 1px;
+  cursor: defa ult;
+  font: normal 13px Arial, sans-serif;
+  margin: 0;
+  outline: none;
+  padding: 4px 0;
+  position: absolute;
+  width:24px;
+  z-index: 20000; /* Arbitrary, but some apps depend on it... */
+}
+
+
+    .goog-menuitem-disabled {
+      color: #999;
+    }
+
+    .goog-menuitem-highlight{
+      background-color: #e8eef7 !important;
+	  background-width:36px;
+    }
+
+    .goog-menuseparator {
+      position: relative;
+      margin: 2px 0;
+      border-top: 1px solid #999;
+      padding: 0;
+      outline: none;
+    }
+	
+.dropDownArrow {
+  position: absolute;
+  left: 75px;
+  top: 10px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #555;
+}
+.selectClass {
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+  -moz-appearance: none;
+  border: none;
+  width: 100px;
+  background: transparent;
+  height: 30px;
+  font-size: 20px;
+  padding-left: 5px;
+  position: absolute;
+}
+.dropdownWrapper {
+  position:absolute;
+  width: 100px;
+  height: 30px;
+  background: #ddd;
+}
+	
+  </style>
+</head>
+<body>
+  <h2>goog.ui.Toolbar</h2>
+
+  <fieldset>
+    <legend>This is starting to look like an editor toolbar:</legend>
+    <label>
+      Show toolbar:
+      <input id="t3_show" type="checkbox" checked>
+    </label>
+    &nbsp;
+    <label>
+      Enable toolbar:
+      <input id="t3_enable" type="checkbox" checked>
+    </label>
+    &nbsp;
+   
+    <br>
+    <br>
+    <div id="t3" class="goog-toolbar">
+    
+      <div id="listStyle" title="List style"
+          class="goog-toolbar-menu-button goog-toolbar-menu-button-disabled">
+        <div class="icon goog-edit-list-style"></div>
+      </div>
+      <hr>
+      <div id="alignLeft" title="Left" class="goog-toolbar-toggle-button goog-toolbar-button-collapse-right">
+        <div class="icon goog-edit-align-left"></div>
+      </div>
+      <div id="alignCenter" title="Center"
+          class="goog-toolbar-toggle-button goog-toolbar-button-collapse-left goog-toolbar-button-collapse-right">
+        <div class="icon goog-edit-align-center"></div>
+      </div>
+
+	   <!--<div id="alignAll" title="Right" class="goog-toolbar-toggle-button goog-toolbar-button-collapse-left">
+        <div class="icon2 goog-edit-align-right"></div>
+      </div>-->
+	  
+	        
+	<div class="goog-flat-menu-button icon21 goog-select" id="alignSelect" style="width: 36px;">
+        
+        <ul class="goog-menu" style="width: 24px;">
+         <!--  <li class="goog-menuitem"></li> -->
+          <li id="1" class="goog-menuitem option1"  style="width: 24px; padding: 1px;"></li>
+          <li id="2" class="goog-menuitem option2" style="width: 24px; padding: 1px;"></li>
+          <li id="3" class="goog-menuitem option3" style="width: 24px; padding: 1px;"></li>
+        </ul>
+      </div>
+	      
+<!-- 		  
+	  <div class="goog-flat-menu-button icon21 goog-select" id="alignSelect1">
+        
+		
+		
+        <ul class="goog-menu" style="width: 24px;">
+         <!--  <li class="goog-menuitem"></li> 
+          <li id="12" class="goog-menuitem option1"></li>
+          <li id="22" class="goog-menuitem option2"></li>
+          <li id="33" class="goog-menuitem option3"></li>
+        </ul>
+      </div> 
+  <div class="goog-flat-menu-button icon2 goog-select " id="alignSelect2">
+        
+        <ul class="goog-menu">
+          <li class="goog-menuitem"></li>
+          <li id="12" class="goog-menuitem option1 "></li>
+          <li id="22" class="goog-menuitem option2"></li>
+          <li id="33" class="goog-menuitem option3"></li>
+        </ul>
+      </div> -->
+	  
+	  	        
+	
+	  
+	  
+	  
+	  
+      <hr>
+<!--       <div id="spellcheck" title="Check spelling"
+          class="goog-toolbar-menu-button goog-toolbar-menu-button-disabled">
+        <div class="goog-edit-spellcheck">Check spelling</div>
+      </div> -->
+    </div>
+	
+	
+	
+	
+    <br>
+    <div id="perf3" class="perf"></div>
+  </fieldset>
+  <div  id="alignSelect2">
+      </div>
+  
+  <br>
+  <br>
+  <!-- Event log. -->
+  <fieldset class="goog-debug-panel">
+    <legend>Event Log</legend>
+    <div class="hint">
+      <b style="color: #800;">Warning!</b> On Gecko, the event log may cause
+      the page to flicker when mousing over toolbar items. This is a Gecko
+      issue triggered by scrolling in the event log.
+
+      <br><br>
+      Enable logging: <input id="enable_log" type="checkbox" checked>
+    </div>
+    <br>
+    <div id="log"></div>
+  </fieldset>
+  <!--
+  <select name="cars" id="cars">
+  <option  class="option1" value="volvo">Volvo</option>
+  <option value="saab">Saab</option>
+  <option value="mercedes">Mercedes</option>
+  <option value="audi">Audi</option>
+</select>
+
+<div class="dropdownWrapper">
+  <div class="dropDownArrow"></div>
+  <select class="selectClass">
+      <option class="option1">One</option>
+      <option>Two</option>
+      <option>Three</option>
+  </select>
+</div>   -->
+  <br>
+  <div>
+  <label id="flat-select1">The best Arnold movie is </label>&nbsp;
+    <span class="good" id="flat-value1"></span>
+    <br>
+	
+</div>
+
+
+ <label class="goog-menuitem option1"></label>
+   <div class="goog-flat-menu-button icon21 goog-select" id="alignSelect12">
+        
+        <ul class="goog-menu">
+         <!--  <li class="goog-menuitem"></li> -->
+          <li id="12" class="goog-menuitem "></li>
+
+        </ul>
+      </div>
+
+
+  <script>
+     var flatSelect1 = new goog.ui.Select(null, null,
+        goog.ui.FlatMenuButtonRenderer.getInstance());
+		var item2=new goog.ui.MenuItem();
+		item2.addClassName('option1');
+		flatSelect1.addItem(item2);
+		flatSelect1.addItem(new goog.ui.MenuItem('Kindergarten Cop'));
+		flatSelect1.addItem(new goog.ui.MenuItem('Predator'));
+		flatSelect1.setSelectedIndex(0);
+	
+    flatSelect1.render(goog.dom.getElement('flat-select1'));
+	
+	new goog.ui.Tooltip('1', "Align left");
+	new goog.ui.Tooltip('2', "Align center");
+	new goog.ui.Tooltip('3', "Align right");
+	new goog.ui.Tooltip('alignSelect','Align');
+	var timer;
+
+    // Set up a logger.
+    goog.debug.LogManager.getRoot().setLevel(goog.log.Level.ALL);
+    var logger = goog.log.getLogger('demo');
+    var logconsole = new goog.debug.DivConsole(goog.dom.getElement('log'));
+    logconsole.setCapturing(true);
+
+    var EVENTS = goog.object.getValues(goog.ui.Component.EventType);
+    goog.log.fine(logger, 'Listening for: ' + EVENTS.join(', ') + '.');
+
+    function logEvent(e) {
+      var caption = e.target.getId();
+      if (typeof e.target.getCaption == 'function' && e.target.getCaption()) {
+        caption += ' (' + e.target.getCaption() + ')';
+      }
+	  
+      goog.log.info(logger, '"' + caption + '" dispatched: ' + e.type);
+    }
+
+    function showPerf(id, start) {
+      goog.dom.setTextContent(goog.dom.getElement(id),
+          (goog.now() - start) + 'ms');
+    }
+
+    goog.events.listen(goog.dom.getElement('enable_log'),
+        goog.events.EventType.CLICK,
+        function(e) {
+          goog.style.setElementShown(goog.dom.getElement('log'), e.target.checked);
+		  alert("at log");
+          logconsole.setCapturing(e.target.checked);
+        });
+	
+	
+	function listenEvent(e){
+	    console.log(e.target);
+		var id = e.target.id;
+		  console.log("great and id "+id);
+		  console.log(e.target);
+		 // alert(select.getSelectedItem() );
+		 
+		 console.log( "class is "+goog.dom.getElement('alignSelect').className); 
+		 goog.dom.getElement('alignSelect').className = goog.dom.getElement('alignSelect').className.replace(/icon2[1-5]/gi,"icon2"+id);
+		 console.log( "class lateris "+goog.dom.getElement('alignSelect').className); 
+	}
+	
+    goog.events.listen(goog.dom.getElement('1'), goog.events.EventType.CLICK,listenEvent);
+	 goog.events.listen(goog.dom.getElement('2'), goog.events.EventType.CLICK,listenEvent);
+	
+	 goog.events.listen(goog.dom.getElement('3'), goog.events.EventType.CLICK,listenEvent);
+		
+   
+
+	//var flatSelect4 = new goog.ui.Select(null, null,
+      // goog.ui.FlatMenuButtonRenderer.getInstance());
+  //  flatSelect4.addClassName('goog-flat-menu-button icon2 goog-select');
+    
+  //   flatSelect4.decorate(goog.dom.getElement('alignSelect'));
+	     goog.events.listen(goog.dom.getElement('enable_log'),
+        goog.events.EventType.CLICK,
+        function(e) {
+          goog.style.setElementShown(goog.dom.getElement('log'), e.target.checked);
+		  alert("at log");
+          logconsole.setCapturing(e.target.checked);
+        });
+	 
+
+	var select1 = new goog.ui.Select();
+    select1.addItem(new goog.ui.MenuItem('Blade Runner'));
+	select1.addItem(new goog.ui.MenuItem('Blade Runne2r'));
+    select1.addItem(new goog.ui.MenuItem('Godfather Part II'));
+	select1.addClassName('goog-flat-menu-button');
+	//select1.addClassName('icon2');
+	//select1.addClassName('goog-select');
+	
+	//select1.setSelectedIndex(2);
+	
+	select1.render(goog.dom.getElement('alignSelect2'));
+	
+	//	goog.
+	
+//select2.setValue(');
+    
+	//select1.decorate(goog.dom.getElement('alignSelect2'));
+	//select1.render(goog.dom.getElement('alignSelect2'));
+	//select1.addClassName(''goog-flat-menu-button icon2 goog-select");
+	
+
+    function handleShow(e) {
+      var t = goog.now();
+      var box = e.target;
+      this.setVisible(box.checked);
+      var caption = this.getId();
+      if (typeof this.getCaption == 'function' && this.getCaption()) {
+        caption += ' (' + this.getCaption() + ')';
+      }
+      goog.log.info(logger, (this.isVisible() ? 'Showed' : 'Hid') + ' ' + caption
+          + ' in ' + (goog.now() - t) + 'ms');
+    }
+
+    function handleEnable(e) {
+      if (typeof this.isParentDisabled_ == 'function' &&
+          this.isParentDisabled_()) {
+        goog.log.warning(logger, 'Can\'t enable/disable control if parent is disabled!');
+        return false;
+      }
+
+      var t = goog.now();
+      var box = e.target;
+      this.setEnabled(box.checked);
+      var caption = this.getId();
+      if (typeof this.getCaption == 'function' && this.getCaption()) {
+        caption += ' (' + this.getCaption() + ')';
+      }
+      goog.log.info(logger, (this.isEnabled() ? 'Enabled' : 'Disabled') + ' ' + caption
+          + ' in ' + (goog.now() - t) + 'ms');
+      return true;
+    }
+
+    // Create first toolbar programmatically.
+   
+
+    // Decorate the third toolbar.
+    timer = goog.now();
+    var t3 = new goog.ui.Toolbar();
+    t3.decorate(goog.dom.getElement('t3'));
+    showPerf('perf3', timer);
+    goog.events.listen(t3, EVENTS, logEvent);
+
+    // Have the alignment buttons be controlled by a selection model.
+    var selectionModel = new goog.ui.SelectionModel();
+    selectionModel.setSelectionHandler(function(button, select) {
+      if (button) {
+        button.setChecked(select);
+      }
+    });
+    goog.array.forEach(['alignLeft', 'alignCenter'],
+        function(id) {
+          var button = t3.getChild(id);
+          // Let the selection model control the button's checked state.
+          button.setAutoStates(goog.ui.Component.State.CHECKED, false);
+          selectionModel.addItem(button);
+          goog.events.listen(button, goog.ui.Component.EventType.ACTION,
+              function(e) {
+                selectionModel.setSelectedItem(e.target);
+              });
+        });
+
+    // Hook up checkboxes.
+    goog.events.listen(goog.dom.getElement('t3_show'),
+        goog.events.EventType.CLICK, handleShow, false, t3);
+    goog.events.listen(goog.dom.getElement('t3_enable'),
+        goog.events.EventType.CLICK, handleEnable, false, t3);
+
+  </script>
+</body>
+</html>
